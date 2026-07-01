@@ -1,6 +1,7 @@
-import { codigorecupera } from "../model/recuperar.js";
-import { obteneremail } from "../model/usuario.js";
+import { codigorecupera, marcarCodigoComoUsado, obtenerCodigoValido } from "../model/recuperar.js";
+import { obteneremail, actualizar } from "../model/usuario.js";
 import nodemailer from 'nodemailer';
+import bcrypt from "bcrypt";
 
 // configuramos el transporte de nodemailer
 const transporte = nodemailer.createTransport({
@@ -56,3 +57,63 @@ export const recuperarr = async (req,res) => {
         return res.status(500).json({ error: 'Error al procesar la solicitud' });
     }
 }; 
+
+// cambiar contraseña y verificar el codigo de recuperacion
+export const verifycode = async (req, res) => {
+    try {
+        const { email, codigo, nuevacontrasena } = req.body;
+
+        //verfificamos las entradas
+        if (!email || !codigo || !nuevacontrasena) {
+            return res.status(400).json({error: 'todos los datos son requeridos'});
+        }
+        // verificamos si el usuario ya esta en la base de datos 
+        const { data: usuario} = await obteneremail(email);
+        if (!usuario) {
+            return res.status(404).json({error: 'usuario no encontrado'});
+        }
+
+        // verificamos que el correo sea correcto
+        const {data: codigorecupera} = await obtenerCodigoValido(usuario.id, codigo);
+        if (!codigorecord) {
+            return res.status(400).json({error: 'codigo de recuperacion invalido o expirado'});
+        }
+
+        // encriptamos la contraseña
+        const hashedcontrasena = await bcrypt.hash(nuevacontrasena, 10);
+
+        // actualizamos la contraseña del usuario en la base de datos
+        const {error: updateerror} = await actualizar(
+            usuario.id, { contrasena: hashedcontrasena}
+        );
+        if (updateerror) throw updateerror;
+
+        //  marcamos el codigo como usado
+        await marcarCodigoComoUsado(codigorecupera.id);
+
+        // respondeos al cliemte que la contraseña se cambio correctamente
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Contraseña actualizada correctamente',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+                    <h2 style="color: #333;"> Notificacion deContraseña Actualizada</h2>
+                        <p>Hola ${usuario.nombre || 'Usuario'},</p>
+                        <p>Tu contraseña ha sido actualizada correctamente.</p>
+                    <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #39a900; margin: 20px 0;">
+                        <p style="margin: 0; font-size: 14px; color: #555;">
+                        Si no solicitaste este cambio, por favor contacta con nuestro equipo de soporte.</p>
+                    </div>
+                        <p style="color: #555; font-size: 14px; margin-top: 30px;">
+                        Gracias</p>
+                        <p>El equipo de soporte</p>
+                </div>
+            `
+        });
+
+    } catch (error){
+        console.error('error en verifycode:', error);
+        return res.status(500).json({error: 'error al procesar la solicitud'});
+    }
+};

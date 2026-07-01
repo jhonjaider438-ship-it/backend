@@ -1,6 +1,6 @@
 import express from 'express';
 import { registro, login  } from '../controllers/autt.js';
-import { recuperarr } from '../controllers/recuperar.js';
+import { recuperarr, verifycode } from '../controllers/recuperar.js';
 
 const router = express.Router();
 
@@ -10,5 +10,7 @@ router.post('/login', login);
 
 // ruta para recuperar contraseña
 router.post('/forgot-password', recuperarr);
+router.post('/verify-code', verifycode);
+
 
 export default router
