@@ -4,6 +4,7 @@ import { conectaDB, supabase } from './config/supabase.js';
 import authRoutes from './routes/auth.js';
 import { version } from 'node:os';
 import userRoutes from './routes/usuario.js'
+import helaRoutes from './routes/helados.js'
 
 // cargar las variables de entorno
 dotenv.config();
@@ -27,6 +28,8 @@ app.get('/',(req,res)=>{
 app.use('/sesion', authRoutes);
 // ruta de krud
 app.use('/user', userRoutes);
+// ruta de krud de la mercancia 
+app.use('/merca', helaRoutes);
 
 // configuramos el puerto
 const PORT = 3000;
