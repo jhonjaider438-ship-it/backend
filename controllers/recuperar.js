@@ -75,7 +75,7 @@ export const verifycode = async (req, res) => {
 
         // verificamos que el correo sea correcto
         const {data: codigorecupera} = await obtenerCodigoValido(usuario.id, codigo);
-        if (!codigorecord) {
+        if (!codigorecupera) {
             return res.status(400).json({error: 'codigo de recuperacion invalido o expirado'});
         }
 
@@ -92,7 +92,7 @@ export const verifycode = async (req, res) => {
         await marcarCodigoComoUsado(codigorecupera.id);
 
         // respondeos al cliemte que la contraseña se cambio correctamente
-        await transporter.sendMail({
+        await transporte.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Contraseña actualizada correctamente',
@@ -111,6 +111,7 @@ export const verifycode = async (req, res) => {
                 </div>
             `
         });
+        return res.status(200).json({message: 'contraseña actualizada'});
 
     } catch (error){
         console.error('error en verifycode:', error);
