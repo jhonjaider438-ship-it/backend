@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.js';
 import { version } from 'node:os';
 import userRoutes from './routes/usuario.js'
 import helaRoutes from './routes/helados.js'
+import pedidoRoutes from './routes/pedidos.js'
 
 // cargar las variables de entorno
 dotenv.config();
@@ -30,6 +31,8 @@ app.use('/sesion', authRoutes);
 app.use('/user', userRoutes);
 // ruta de krud de la mercancia 
 app.use('/merca', helaRoutes);
+// ruta de los pedidos 
+app.use('/pedidos', pedidoRoutes);
 
 // configuramos el puerto
 const PORT = 3000;
