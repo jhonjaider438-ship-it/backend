@@ -4,6 +4,10 @@ import { crearuser, obteneremail } from '../model/usuario.js';
 
 // registro
 export const registro = async (req, res)=>{
+
+
+
+    
     try {
         const {nombre,email, contrasena,} = req.body
         // validar datos
